@@ -1,0 +1,5 @@
+// KQL file for retrieving dependencies
+AppServiceMetrics
+| where TimeGenerated >= ago(24h)
+| summarize AvgCpu = avg(CPUPercentage), AvgMemory = avg(MemoryWorkingSet/1024/1024) by bin(TimeGenerated, 1h)
+| order by TimeGenerated asc

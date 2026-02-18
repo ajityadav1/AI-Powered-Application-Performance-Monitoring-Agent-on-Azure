@@ -1,0 +1,5 @@
+// KQL file for retrieving custom events
+requests
+| where timestamp > ago(1h)
+| project timestamp, name, resultCode, duration, success
+| order by timestamp desc

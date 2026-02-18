@@ -1,0 +1,15 @@
+requests
+| where timestamp > ago(60m)
+| summarize p95 = percentile(duration, 95),
+            count = count(),
+            timeouts = countif(resultCode == "408" or name has "timeout" or success == false)
+        by bin(timestamp, 1m), operation_Name
+| make-series s_p95 = avg(p95)
+        on timestamp in range(ago(60m), now(), 1m)
+        by operation_Name
+| extend (p95Anom, baseline, score) = series_decompose_anomalies(s_p95, 3, -1, 'linefit')
+| mv-expand timestamp to typeof(datetime),
+            s_p95 to typeof(real),
+            p95Anom to typeof(real)
+| where p95Anom > 0
+| project timestamp, operation_Name, p95 = s_p95, p95Anom
